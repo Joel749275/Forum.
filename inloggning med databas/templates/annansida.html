@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h2>Sida för inloggade användare</h2>
+    <p>Här finns en sida med information som handlar specifikt om användaren {{user['username']}}. Du kan t.ex. se användarens mailadress: {{user['email']}}.</p>
+    <p>
+        Du kan även skriva något här:
+            <form method="post" action="/append">
+                <input type="text" name="line" size="40" placeholder="Skriv något">
+                <input type="submit" value="Spara">
+            </form>
+    </p>
+    <p><a href="/login">Tillbaka till startsidan</a></p>
+{% endblock %}
