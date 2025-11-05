@@ -45,10 +45,35 @@ def login():
     else:
         return render_template('error.html')
 
+@app.route('/append', methods=['POST'])
+def append():
+    if not session:
+        return render_template('error.html')
+    
+    message = request.form.get('line', '')
+    username = session['user']['username']
+    
+    db = get_connection()
+    cursor = db.cursor()
+    sql = "INSERT INTO messages (username, message) VALUES (%s, %s)"
+    values = (username, message)
+    cursor.execute(sql, values)
+    db.commit()
+    cursor.close()
+    db.close()
+    
+    return redirect('/annansida')
+
 @app.route('/annansida')
 def annansida():
     if session:
-        return render_template('annansida.html', user=session['user'])
+        db = get_connection()
+        cursor = db.cursor()
+        cursor.execute("SELECT username, message, created_at FROM messages ORDER BY created_at DESC")
+        messages = cursor.fetchall()
+        cursor.close()
+        db.close()
+        return render_template('annansida.html', user=session['user'], messages=messages)
     else:
         return render_template('error.html')
 
@@ -56,15 +81,6 @@ def annansida():
 def logout():
     session.clear()
     return redirect(url_for('index'))
-
-@app.route('/append', methods=['POST'])
-def append():
-    if not session: # om man inte är inloggad
-        return render_template('error.html')
-    line = f'{session['user']['username']} skrev: {request.form.get('line', '')}'
-    with open('meddelanden.txt', 'a', encoding='utf-8') as f:
-        f.write(line + '\n')
-    return redirect('/annansida')
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
