@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>Skapa konto</h2>
+  {% if error %}
+    <p style="color:red;">{{ error }}</p>
+  {% endif %}
+  <form method="post">
+    Användarnamn: <input type="text" name="username" value=""><br>
+    Lösenord: <input type="password" name="password" value=""><br>
+    E-post (valfritt): <input type="email" name="email" value=""><br>
+    <input type="submit" value="Skapa konto">
+  </form>
+  <p><a href="/">Tillbaka</a></p>
+{% endblock %}

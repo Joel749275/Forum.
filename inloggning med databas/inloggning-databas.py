@@ -1,23 +1,20 @@
 from flask import Flask, render_template, session, redirect, url_for, request
-import mysql.connector  # installera med "pip install mysql-connector-python" i kommandotolken, ifall du inte redan gjort detta
-
+import mysql.connector 
 app = Flask(__name__)
-app.secret_key = 'hemligtextsträngsomingenkangissa'  # Används för sessionshantering
+app.secret_key = 'hemligtextsträngsomingenkangissa' 
 
-# skapa databasuppkoppling
 def get_connection(host="localhost", user="root", password=""):
     mydb = mysql.connector.connect(
         host=host,
         user=user,
         password=password,
-        database="webbserverprogrammering"  # byt namn om din databas heter något annat
+        database="webbserverprogrammering" 
     )
     return mydb
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
-        # kontrollera att inloggningsuppgifter stämmer
         logged_in = False
         db = get_connection()
         mycursor = db.cursor()
@@ -25,17 +22,16 @@ def index():
         users = mycursor.fetchall()
         for user in users:
             
-            # varje user i loopen är en 4-tippel på formen (username, password, email, id)
+           
             if request.form['name'] == user[0] and request.form['password'] == user[1]:
-                # i själva verket bör inte lösenord lagras i klartext utan vara krypterade - mer om detta senare i kursen
                 logged_in = True
                 session['user'] = {'username': user[0], 'email': user[2]}
                 break
-        if not logged_in: # om hela loopen har gått utan att någon matchning hittats
+        if not logged_in: 
             session.clear()
         return redirect(url_for('login'))
     
-    # Det här returneras om GET-anrop görs
+   
     return render_template('home.html')
 
 @app.route('/login')
@@ -44,6 +40,37 @@ def login():
         return render_template('login.html', user=session['user'])
     else:
         return render_template('error.html')
+
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '').strip()
+        email = request.form.get('email', '').strip()
+
+        if not username or not password:
+            return render_template('register.html', error='Fyll i användarnamn och lösenord')
+
+        db = get_connection()
+        cursor = db.cursor()
+      
+        cursor.execute("SELECT id FROM users WHERE username = %s", (username,))
+        if cursor.fetchone():
+            cursor.close()
+            db.close()
+            return render_template('register.html', error='Användarnamn finns redan')
+
+       
+        cursor.execute("INSERT INTO users (username, password, email) VALUES (%s, %s, %s)",
+                       (username, password, email))
+        db.commit()
+        cursor.close()
+        db.close()
+
+        return redirect(url_for('index'))
+
+    return render_template('register.html')
 
 @app.route('/append', methods=['POST'])
 def append():
