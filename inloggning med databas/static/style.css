@@ -1,0 +1,75 @@
+body {
+  background-color: #e6fff0; /* ljusgrön */
+  font-family: Arial, Helvetica, sans-serif;
+  color: #1f3a1f;
+  margin: 0;
+  padding: 0;
+}
+
+header {
+  background: linear-gradient(90deg, #c6f6d5, #e6fff0);
+  padding: 1rem 2rem;
+  border-bottom: 1px solid #cfe9d3;
+}
+
+header {
+  font-weight: 600;
+  color: #174022;
+}
+
+main {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 1.25rem;
+  background: rgba(255,255,255,0.92);
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+footer {
+  text-align: center;
+  padding: 1rem 0;
+  color: #2a5a2a;
+  border-top: 1px solid #cfe9d3;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+textarea {
+  padding: 0.4rem;
+  border: 1px solid #bcd9b9;
+  border-radius: 4px;
+  margin: 0.35rem 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+input[type="submit"],
+button {
+  background-color: #7bd389;
+  color: #063a14;
+  border: none;
+  padding: 0.5rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+input[type="submit"]:hover,
+button:hover {
+  background-color: #63c272;
+}
+
+a {
+  color: #0b6b2b;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.message, .messages p {
+  border-bottom: 1px dashed #cfe9d3;
+  padding: 0.5rem 0;
+}

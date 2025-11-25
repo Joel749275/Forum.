@@ -22,7 +22,6 @@ def index():
         users = mycursor.fetchall()
         for user in users:
             
-           
             if request.form['name'] == user[0] and request.form['password'] == user[1]:
                 logged_in = True
                 session['user'] = {'username': user[0], 'email': user[2]}
