@@ -15,22 +15,19 @@ def get_connection(host="localhost", user="root", password=""):
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
-        logged_in = False
+        username = request.form.get('name', '').strip()
+        password = request.form.get('password', '').strip()
         db = get_connection()
-        mycursor = db.cursor()
-        mycursor.execute("SELECT * FROM users")
-        users = mycursor.fetchall()
-        for user in users:
-            
-            if request.form['name'] == user[0] and request.form['password'] == user[1]:
-                logged_in = True
-                session['user'] = {'username': user[0], 'email': user[2]}
-                break
-        if not logged_in: 
+        cur = db.cursor()
+        cur.execute("SELECT id, username, password, email FROM users WHERE username = %s", (username,))
+        row = cur.fetchone()
+        cur.close()
+        db.close()
+        if row and password == row[2]:
+            session['user'] = {'id': row[0], 'username': row[1], 'email': row[3]}
+        else:
             session.clear()
         return redirect(url_for('login'))
-    
-   
     return render_template('home.html')
 
 @app.route('/login')
@@ -39,7 +36,6 @@ def login():
         return render_template('login.html', user=session['user'])
     else:
         return render_template('error.html')
-
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -60,7 +56,6 @@ def register():
             db.close()
             return render_template('register.html', error='Användarnamn finns redan')
 
-       
         cursor.execute("INSERT INTO users (username, password, email) VALUES (%s, %s, %s)",
                        (username, password, email))
         db.commit()
@@ -77,18 +72,77 @@ def append():
         return render_template('error.html')
     
     message = request.form.get('line', '')
+    topic_id = request.form.get('topic_id') 
+    user_id = session['user']['id']
     username = session['user']['username']
     
     db = get_connection()
     cursor = db.cursor()
-    sql = "INSERT INTO messages (username, message) VALUES (%s, %s)"
-    values = (username, message)
-    cursor.execute(sql, values)
+    if topic_id:
+        cursor.execute("INSERT INTO messages (topic_id, user_id, username, message) VALUES (%s, %s, %s, %s)",
+                       (topic_id, user_id, username, message))
+    else:
+        cursor.execute("INSERT INTO messages (user_id, username, message) VALUES (%s, %s, %s)",
+                       (user_id, username, message))
     db.commit()
     cursor.close()
     db.close()
-    
+    if topic_id:
+        return redirect(url_for('view_topic', topic_id=topic_id))
     return redirect('/annansida')
+
+@app.route('/topics', methods=['GET', 'POST'])
+def topics():
+    if request.method == 'POST':
+        if not session:
+            return render_template('error.html')
+        title = request.form.get('title', '').strip()
+        if not title:
+            return redirect(url_for('topics'))
+        db = get_connection()
+        cur = db.cursor()
+        cur.execute("INSERT INTO topics (title, creator_id) VALUES (%s, %s)", (title, session['user']['id']))
+        db.commit()
+        topic_id = cur.lastrowid
+        cur.close()
+        db.close()
+        return redirect(url_for('view_topic', topic_id=topic_id))
+
+    db = get_connection()
+    cur = db.cursor()
+    cur.execute("SELECT id, title, created_at FROM topics ORDER BY created_at DESC")
+    topics = cur.fetchall()
+    cur.close()
+    db.close()
+    return render_template('topics.html', user=session.get('user'), topics=topics)
+
+@app.route('/topic/<int:topic_id>', methods=['GET', 'POST'])
+def view_topic(topic_id):
+    db = get_connection()
+    cur = db.cursor()
+    if request.method == 'POST':
+        if not session:
+            cur.close()
+            db.close()
+            return render_template('error.html')
+        content = request.form.get('content', '').strip()
+        if content:
+            cur.execute(
+                "INSERT INTO messages (topic_id, user_id, username, message) VALUES (%s, %s, %s, %s)",
+                (topic_id, session['user']['id'], session['user']['username'], content)
+            )
+            db.commit()
+    cur.execute("SELECT id, title, created_at FROM topics WHERE id = %s", (topic_id,))
+    topic = cur.fetchone()
+    if not topic:
+        cur.close()
+        db.close()
+        return render_template('error.html')
+    cur.execute("SELECT username, message, created_at FROM messages WHERE topic_id = %s ORDER BY created_at ASC", (topic_id,))
+    posts = cur.fetchall()
+    cur.close()
+    db.close()
+    return render_template('topic.html', user=session.get('user'), topic=topic, posts=posts)
 
 @app.route('/annansida')
 def annansida():

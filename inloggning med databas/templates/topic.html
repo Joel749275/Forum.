@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>Tråd: {{ topic[1] }}</h2>
+  <p>Skapad: {{ topic[2] }}</p>
+
+  <h3>Inlägg</h3>
+  {% if posts %}
+    {% for p in posts %}
+      <div class="message">
+        <strong>{{ p[0] }}</strong> — <small>{{ p[2] }}</small>
+        <p>{{ p[1] }}</p>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>Inga inlägg ännu.</p>
+  {% endif %}
+
+  {% if user %}
+    <form method="post">
+      <textarea name="content" rows="4" style="width:100%" placeholder="Skriv ditt inlägg här"></textarea>
+      <input type="submit" value="Svara">
+    </form>
+  {% else %}
+    <p><a href="/">Logga in</a> för att skriva.</p>
+  {% endif %}
+
+  <p><a href="{{ url_for('topics') }}">Tillbaka till trådar</a></p>
+{% endblock %}

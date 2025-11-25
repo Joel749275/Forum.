@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>Trådar</h2>
+
+  {% if user %}
+    <form method="post">
+      <input type="text" name="title" placeholder="Ny tråd titel" style="width:70%;">
+      <input type="submit" value="Skapa tråd">
+    </form>
+  {% else %}
+    <p>Logga in för att skapa trådar och skriva inlägg.</p>
+  {% endif %}
+
+  <h3>Senaste trådar</h3>
+  {% if topics %}
+    <ul>
+      {% for t in topics %}
+        <li><a href="{{ url_for('view_topic', topic_id=t[0]) }}">{{ t[1] }}</a> — {{ t[2] }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Inga trådar ännu.</p>
+  {% endif %}
+  <p><a href="/annansida">Tillbaka</a></p>
+{% endblock %}
